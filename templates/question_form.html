@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>
+    {% if question %}
+      עריכת תרגיל
+    {% else %}
+      הוספת תרגיל
+    {% endif %}
+  </h3>
+
+  <form method="post">
+    <div class="mb-3">
+      <label for="title" class="form-label">כותרת התרגיל</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        class="form-control"
+        value="{{ question.title if question else '' }}"
+        required
+      >
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      {% if question %}עדכן{% else %}הוסף{% endif %}
+    </button>
+    <a href="{{ url_for('admin_questions') }}" class="btn btn-secondary ms-2">ביטול</a>
+  </form>
+</div>
+{% endblock %}

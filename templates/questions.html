@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block content %}
+<input type="file" id="fileInput" style="display:none" />
+
+<div class="container-fluid px-4">
+  <div class="row g-4">
+    <!-- Sidebar שאלות -->
+    <div class="col-md-4">
+      <div class="card" style="position: sticky; top: 20px;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0" style="color: #6366f1; font-weight: 700;">
+              <i class="bi bi-list-task me-2"></i>{{ 'שאלות' if current_lang=='he' else 'Questions' }}
+            </h4>
+            {% if current_is_admin %}
+              <button class="btn btn-success btn-sm"
+                      onclick="addQuestion()"
+                      style="box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                <i class="bi bi-plus-lg"></i>
+                {{ 'הוסף' if current_lang=='he' else 'Add' }}
+              </button>
+            {% endif %}
+          </div>
+
+          {% for level,label,color in [('easy','קלה','#10b981'),('medium','בינונית','#f59e0b'),('hard','קשה','#ef4444')] %}
+            <div class="mb-4">
+              <h6 class="mb-3" style="color: {{ color }}; font-weight: 600; font-size: 1.1rem;">
+                <i class="bi bi-circle-fill me-2" style="font-size: 0.6rem;"></i>{{ label }}
+              </h6>
+              <ul class="list-group mb-2">
+                {% for q in questions_list if q.difficulty==level %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span onclick="loadQuestion({{ q.id }}, this)"
+                          style="cursor:pointer; flex: 1; font-weight: 500;">
+                      {{ q.title }}
+                    </span>
+
+                    {% if current_is_admin %}
+                      <span class="ms-2">
+                        <a href="#" onclick="editQuestion({{ q.id }})"
+                           class="me-2 text-decoration-none"
+                           style="color: #6366f1;"
+                           onmouseover="this.style.color='#4f46e5'"
+                           onmouseout="this.style.color='#6366f1'">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="#" onclick="deleteQuestion({{ q.id }})"
+                           style="color: #ef4444;"
+                           onmouseover="this.style.color='#dc2626'"
+                           onmouseout="this.style.color='#ef4444'">
+                          <i class="bi bi-trash"></i>
+                        </a>
+                      </span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+                {% set level_questions = questions_list|selectattr('difficulty','equalto',level)|list %}
+                {% if not level_questions %}
+                  <li class="list-group-item text-muted text-center" style="border: none; padding: 0.5rem;">
+                    <small>{{ 'אין שאלות ברמה זו' if current_lang=='he' else 'No questions in this level' }}</small>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- עורך הקוד -->
+    <div class="col-md-8">
+      <div id="question-display"
+           class="mb-4"
+           style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; font-size: 1.1rem; line-height: 1.8; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); min-height: 80px;">
+        <i class="bi bi-info-circle me-2" style="color: #6366f1;"></i>
+        {{ 'בחר שאלה כדי להתחיל' if current_lang=='he' else 'Select a question' }}
+      </div>
+      <textarea id="editor" class="w-100"></textarea>
+      <div id="result" class="mt-4" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  window.editor = CodeMirror.fromTextArea(
+    document.getElementById('editor'),
+    { mode:'python', lineNumbers:true }
+  );
+  
+  // עדכון mode כשמשנים שפה
+  document.getElementById('language-select').addEventListener('change', (e) => {
+    const lang = e.target.value;
+    let mode = 'python';
+    if (lang === 'java') {
+      mode = 'text/x-java';
+    } else if (lang === 'cpp') {
+      mode = 'text/x-c++src';
+    } else if (lang === 'python') {
+      mode = 'python';
+    }
+    editor.setOption('mode', mode);
+  });
+});
+
+const questions = {{ questions_list|tojson }};
+
+function loadQuestion(id, el) {
+  const q = questions.find(x=>x.id===id);
+  const display = document.getElementById('question-display');
+  display.innerHTML = `<i class="bi bi-question-circle me-2" style="color: #6366f1;"></i><strong>${q.title}</strong>`;
+  editor.setValue('');
+  document.getElementById('result').style.display = 'none';
+  document.querySelectorAll('.list-group-item span')
+          .forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function runCode() {
+  const code = editor.getValue();
+  const lang = document.getElementById('language-select').value;
+  const r = await fetch('/run',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({code, language:lang})
+  });
+  const { output } = await r.json();
+  const box = document.getElementById('result');
+  box.textContent = output;
+  box.style.display = 'block';
+}
+
+// ——— Admin inline handlers ———
+
+async function addQuestion(){
+  const title = prompt("{{ 'הכנס כותרת שאלה' if current_lang=='he' else 'Enter question title' }}");
+  if(!title) return;
+  const diff = prompt("{{ 'רמת קושי: easy, medium או hard' if current_lang=='he' else 'Difficulty (easy, medium, hard)' }}");
+  const r = await fetch('/questions/add',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({title, difficulty: diff})
+  });
+  if(r.ok) window.location.reload();
+}
+
+async function editQuestion(id){
+  const q = questions.find(x=>x.id===id);
+  const title = prompt("{{ 'עדכן כותרת' if current_lang=='he' else 'Update title' }}", q.title);
+  if(title===null) return;
+  const diff = prompt("{{ 'עדכן קושי: easy, medium, hard' if current_lang=='he' else 'Update difficulty (easy, medium, hard)' }}", q.difficulty);
+  await fetch('/questions/edit',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, title, difficulty: diff})
+  });
+  window.location.reload();
+}
+
+async function deleteQuestion(id){
+  if(!confirm("{{ 'למחוק שאלה זו?' if current_lang=='he' else 'Delete this question?' }}")) return;
+  await fetch('/questions/delete',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id})
+  });
+  window.location.reload();
+}
+
+// ——— File menu (כמו קודם) ———
+
+function newFile()     { editor.setValue(''); }
+function saveFile()    {
+  const b = new Blob([editor.getValue()],{type:'text/plain'});
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a');
+  a.href     = u;
+  a.download = 'code.txt';
+  a.click();
+  URL.revokeObjectURL(u);
+}
+function openFile()    { document.getElementById('fileInput').click(); }
+document.getElementById('fileInput')
+        .addEventListener('change', evt=>{
+  const f = evt.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e=>editor.setValue(e.target.result);
+  r.readAsText(f);
+});
+</script>
+{% endblock %}

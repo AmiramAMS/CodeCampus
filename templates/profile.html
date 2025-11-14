@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-8 col-lg-6">
+    <!-- כרטיס פרופיל -->
+    <div class="card mb-4">
+      <div class="card-body text-center">
+        <div class="mb-4">
+          <i class="bi bi-person-circle" style="font-size: 5rem; color: #6366f1;"></i>
+        </div>
+        <h3 class="card-title mb-4" style="color: #6366f1; font-weight: 700;">{{ 'פרופיל אישי' if current_lang=='he' else 'Profile' }}</h3>
+        <div class="d-flex align-items-center justify-content-center mb-3">
+          <i class="bi bi-person me-2" style="color: #6b7280;"></i>
+          <span style="font-size: 1.2rem;"><strong>{{ 'שם משתמש:' if current_lang=='he' else 'Username:' }}</strong> <span style="color: #1f2937;">{{ user.username }}</span></span>
+        </div>
+        {% if user.is_admin %}
+        <span class="badge bg-gradient" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 0.5rem 1rem; font-size: 0.9rem;">
+          <i class="bi bi-shield-check me-1"></i> {{ 'מנהל' if current_lang=='he' else 'Admin' }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- כרטיס סטטיסטיקה -->
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title mb-4" style="color: #6366f1; font-weight: 700;">
+          <i class="bi bi-graph-up me-2"></i>{{ 'סטטיסטיקת ביצועים' if current_lang=='he' else 'Performance Statistics' }}
+        </h4>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #bae6fd;">
+              <i class="bi bi-file-earmark-code" style="font-size: 2rem; color: #06b6d4; margin-bottom: 0.5rem;"></i>
+              <h5 style="color: #0c4a6e; margin: 0.5rem 0;">{{ solved_count }}</h5>
+              <p style="color: #075985; margin: 0; font-size: 0.9rem;">{{ 'תרגילים שהוגשו' if current_lang=='he' else 'Submitted Exercises' }}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #86efac;">
+              <i class="bi bi-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem;"></i>
+              <h5 style="color: #14532d; margin: 0.5rem 0;">{{ success_count }}</h5>
+              <p style="color: #166534; margin: 0; font-size: 0.9rem;">{{ 'תרגילים שהצלחו' if current_lang=='he' else 'Successful Exercises' }}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 rounded" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #fcd34d;">
+              <i class="bi bi-trophy" style="font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem;"></i>
+              <h5 style="color: #78350f; margin: 0.5rem 0;">
+                {% if solved_count > 0 %}
+                  {{ (success_count*100/solved_count)|round(1) }}%
+                {% else %}
+                  0%
+                {% endif %}
+              </h5>
+              <p style="color: #92400e; margin: 0; font-size: 0.9rem;">{{ 'שיעור הצלחה' if current_lang=='he' else 'Success Rate' }}</p>
+            </div>
+          </div>
+        </div>
+        {% if solved_count == 0 %}
+        <div class="alert alert-info mt-4 text-center" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #bae6fd; border-radius: 12px;">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>{{ 'אין עדיין נתונים' if current_lang=='he' else 'No data yet' }}</strong><br>
+          <small>{{ 'התחל לפתור שאלות כדי לראות את הסטטיסטיקה שלך!' if current_lang=='he' else 'Start solving questions to see your statistics!' }}</small>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

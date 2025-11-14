@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>התחברות</title>
+  <!-- CSS של הטופס -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+</head>
+<body>
+  <div id="flash-message-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% set category, message = messages[0] %}
+        <div class="flash-message {{ category }}">
+          {{ message }}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <div class="form-container">
+    <div class="logo-container" style="text-align: center; margin-bottom: 2rem;">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" 
+           alt="CodeCampus Logo" 
+           style="height: 80px; width: auto; max-width: 200px;"
+           onerror="this.style.display='none';">
+    </div>
+    <h2>Login</h2>
+    <form method="POST">
+      <label for="username">User Name:</label>
+      <input type="text" name="username" required>
+
+      <label for="password">Password:</label>
+      <input type="password" name="password" required>
+
+      <button type="submit">Sign in</button>
+    </form>
+
+    <div class="form-footer">
+      <p>חדש פה? <a href="{{ url_for('register') }}">הרשם כאן</a></p>
+      <p><a href="{{ url_for('guest_login') }}">היכנס כאורח</a></p>
+    </div>
+  </div>
+</body>
+</html>

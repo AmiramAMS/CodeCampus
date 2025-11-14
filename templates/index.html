@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <!-- input נסתר לפתיחת קבצים -->
+  <input type="file" id="fileInput" style="display:none" />
+
+  <div class="container-fluid p-4">
+    <!-- עורך קוד -->
+    <div class="mb-4">
+      <h4 style="color: #6366f1; font-weight: 700; margin-bottom: 1rem;">
+        <i class="bi bi-code-square me-2"></i>{{ 'עורך קוד' if current_lang=='he' else 'Code Editor' }}
+      </h4>
+      <textarea id="editor"></textarea>
+    </div>
+    <!-- תוצאה -->
+    <div id="result"
+         class="mt-4"
+         style="display:none;"></div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // אתחול CodeMirror
+  document.addEventListener('DOMContentLoaded', () => {
+    window.editor = CodeMirror.fromTextArea(
+      document.getElementById('editor'),
+      { mode: 'python', lineNumbers: true }
+    );
+    
+    // עדכון mode כשמשנים שפה
+    document.getElementById('language-select').addEventListener('change', (e) => {
+      const lang = e.target.value;
+      let mode = 'python';
+      if (lang === 'java') {
+        mode = 'text/x-java';
+      } else if (lang === 'cpp') {
+        mode = 'text/x-c++src';
+      } else if (lang === 'python') {
+        mode = 'python';
+      }
+      editor.setOption('mode', mode);
+    });
+  });
+
+  // פונקציות ה-toolbar הועברו ל-base.html
+  // כאן רק הטעינה של הפקודות:
+  async function runCode() {
+    const code     = editor.getValue();
+    const language = document.getElementById('language-select').value;
+    const resp     = await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ code, language })
+    });
+    const { output } = await resp.json();
+    const box = document.getElementById('result');
+    box.textContent   = output;
+    box.style.display = 'block';
+  }
+
+  function newFile()  { editor.setValue(''); }
+  function saveFile(){
+    const blob = new Blob([editor.getValue()], { type:'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'code.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  function openFile() { document.getElementById('fileInput').click(); }
+  document.getElementById('fileInput').addEventListener('change', evt => {
+    const f = evt.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => editor.setValue(e.target.result);
+    r.readAsText(f);
+  });
+</script>
+{% endblock %}
