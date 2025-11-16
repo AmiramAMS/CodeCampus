@@ -79,6 +79,10 @@ def register():
         session['is_admin'] = u.is_admin
         flash('נרשמת בהצלחה!', 'success')
         return redirect(url_for('home'))
+    # אם המשתמש כבר מחובר, העבר אותו לדף הבית
+    if session.get('user_id') or session.get('guest'):
+        return redirect(url_for('home'))
+    # אחרת, הצג את דף ההרשמה
     return render_template('register.html')
 
 @app.route('/login', methods=['GET','POST'])
@@ -94,6 +98,10 @@ def login():
             return redirect(url_for('home'))
         flash('שם משתמש או סיסמה שגויים', 'danger')
         return redirect(url_for('login'))
+    # אם המשתמש כבר מחובר, העבר אותו לדף הבית
+    if session.get('user_id') or session.get('guest'):
+        return redirect(url_for('home'))
+    # אחרת, הצג את דף ההתחברות
     return render_template('login.html')
 
 @app.route('/guest_login')
@@ -101,6 +109,7 @@ def guest_login():
     session.clear()
     session['guest']    = True
     session['is_admin'] = False
+    session['lang']     = session.get('lang', 'he')
     flash('!התחברת כאורח', 'info')
     return redirect(url_for('home'))
 
@@ -108,20 +117,33 @@ def guest_login():
 def logout():
     session.clear()
     flash('התנתקת מהמערכת.', 'info')
-    return redirect(url_for('login'))
+    return redirect(url_for('landing'))
 
 # ------ Language Toggle ------
 @app.route('/set_language/<lang>', methods=['POST'])
 def set_language(lang):
     if lang in ('he','en'):
         session['lang'] = lang
-    return redirect(request.referrer or url_for('home'))
+    # אם אין referrer או שהמשתמש לא מחובר, חזור לדף הנחיתה
+    if not request.referrer:
+        if 'user_id' in session or 'guest' in session:
+            return redirect(url_for('home'))
+        else:
+            return redirect(url_for('landing'))
+    return redirect(request.referrer)
 
 # ------ Main Routes ------
 @app.route('/')
+def landing():
+    # אם המשתמש כבר מחובר, העבר אותו לדף הבית
+    if 'user_id' in session or 'guest' in session:
+        return redirect(url_for('home'))
+    return render_template('landing.html')
+
+@app.route('/home')
 def home():
     if 'user_id' not in session and 'guest' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('landing'))
     return render_template('index.html')
 
 @app.route('/questions')

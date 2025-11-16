@@ -154,28 +154,161 @@ body::after {
 /* ===== CodeMirror Editor ===== */
 .CodeMirror {
     height: 500px !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 12px !important;
-    font-size: 14px !important;
-    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(15px);
-    box-shadow: var(--card-shadow);
-    transition: all 0.3s ease;
+    border: 3px solid transparent !important;
+    border-radius: 16px !important;
+    font-size: 15px !important;
+    font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%) !important;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 8px 32px rgba(99, 102, 241, 0.15),
+        0 0 0 1px rgba(99, 102, 241, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 1;
+    overflow: hidden;
+}
+
+.CodeMirror::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        #6366f1 0%, 
+        #8b5cf6 25%, 
+        #06b6d4 50%, 
+        #8b5cf6 75%, 
+        #6366f1 100%);
+    background-size: 200% 100%;
+    animation: gradientFlow 3s ease infinite;
+    z-index: 2;
+    border-radius: 16px 16px 0 0;
+}
+
+@keyframes gradientFlow {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.CodeMirror-scroll {
+    border-radius: 16px;
+}
+
+.CodeMirror-sizer {
+    border-left: 4px solid transparent;
+    padding-left: 8px !important;
+}
+
+.CodeMirror-linenumber {
+    color: #94a3b8 !important;
+    font-weight: 500;
+    padding: 0 12px 0 8px !important;
+    min-width: 50px !important;
+    text-align: right !important;
+    background: linear-gradient(90deg, 
+        rgba(241, 245, 249, 0.5) 0%, 
+        rgba(255, 255, 255, 0.3) 100%);
+    border-right: 2px solid rgba(99, 102, 241, 0.1);
+}
+
+.CodeMirror-gutters {
+    background: linear-gradient(180deg, 
+        rgba(248, 250, 252, 0.8) 0%, 
+        rgba(241, 245, 249, 0.6) 100%) !important;
+    border-right: 2px solid rgba(99, 102, 241, 0.15) !important;
+    border-radius: 16px 0 0 16px;
+    backdrop-filter: blur(10px);
+}
+
+.CodeMirror-lines {
+    padding: 20px 16px !important;
+    background: transparent;
+}
+
+.CodeMirror-cursor {
+    border-left: 3px solid #6366f1 !important;
+    border-left-style: solid !important;
+    animation: blink 1s infinite;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0.3;
+    }
+}
+
+.CodeMirror-selected {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-radius: 4px;
+}
+
+.CodeMirror-line::selection,
+.CodeMirror-line > span::selection,
+.CodeMirror-line > span > span::selection {
+    background: rgba(99, 102, 241, 0.2) !important;
 }
 
 .CodeMirror:hover {
-    border-color: rgba(99, 102, 241, 0.5) !important;
-    box-shadow: var(--card-shadow-hover);
-    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 
+        0 12px 40px rgba(99, 102, 241, 0.2),
+        0 0 0 1px rgba(99, 102, 241, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
 }
 
 .CodeMirror-focused {
-    border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-    background: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 
+        0 16px 48px rgba(99, 102, 241, 0.25),
+        0 0 0 4px rgba(99, 102, 241, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.98) 100%) !important;
+    transform: translateY(-1px);
+}
+
+/* Syntax highlighting improvements */
+.CodeMirror .cm-keyword {
+    color: #8b5cf6 !important;
+    font-weight: 600;
+}
+
+.CodeMirror .cm-string {
+    color: #10b981 !important;
+}
+
+.CodeMirror .cm-number {
+    color: #f59e0b !important;
+}
+
+.CodeMirror .cm-comment {
+    color: #64748b !important;
+    font-style: italic;
+}
+
+.CodeMirror .cm-variable {
+    color: #6366f1 !important;
+}
+
+.CodeMirror .cm-def {
+    color: #06b6d4 !important;
+    font-weight: 500;
+}
+
+.CodeMirror .cm-operator {
+    color: #ef4444 !important;
 }
 
 /* ===== Result Box ===== */

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Env & secrets
+.env
+*.pem
+*.key
+*.crt
+
+# Flask / Instance & DB
+instance/
+*.db
+*.sqlite3
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Temporary files
+temp.js
+temp.cpp
+temp.exe
+output.txt
+*.class
+
